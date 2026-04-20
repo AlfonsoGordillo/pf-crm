@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{{ t.leads }}{% endblock %}
+{% block nav_leads %}active{% endblock %}
+
+{% block content %}
+<div class="p-6 space-y-5">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-bold text-white">{{ t.leads }}</h1>
+      <p class="text-sm text-slate-400 mt-0.5">{{ leads | length }} leads</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <form method="get" action="/leads" class="flex flex-wrap gap-3">
+    <input type="text" name="search" value="{{ search }}" placeholder="{{ t.search_placeholder }}" style="width:220px"/>
+    <select name="stage">
+      <option value="">{{ t.all_stages }}</option>
+      {% for s in ['nuevo','contactado','calificado','propuesta','ganado','perdido'] %}
+      <option value="{{ s }}" {% if filter_stage == s %}selected{% endif %}>{{ t['stage_' + s] }}</option>
+      {% endfor %}
+    </select>
+    <select name="industry">
+      <option value="">{{ t.all_industries }}</option>
+      {% for ind in ['inmobiliaria','salud','fintech','retail','tecnología','manufactura','legal','educación'] %}
+      <option value="{{ ind }}" {% if filter_industry == ind %}selected{% endif %}>{{ t['ind_' + ind] if ('ind_' + ind) in t else ind }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn-primary">{{ t.filter }}</button>
+    {% if filter_stage or filter_industry or search %}
+    <a href="/leads" class="py-2 px-4 text-slate-400 hover:text-slate-200 text-sm">✕ Clear</a>
+    {% endif %}
+  </form>
+
+  <!-- Table -->
+  <div class="card overflow-hidden">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>{{ t.name }}</th>
+          <th>{{ t.industry }}</th>
+          <th>{{ t.stage }}</th>
+          <th>{{ t.score }}</th>
+          <th>{{ t.value }}</th>
+          <th>{{ t.last_contact }}</th>
+          <th>{{ t.actions }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lead in leads %}
+        <tr>
+          <td class="text-slate-500 text-xs">{{ loop.index }}</td>
+          <td>
+            <div class="font-medium text-slate-200">{{ lead.name }}</div>
+            <div class="text-xs text-slate-500">{{ lead.company }}</div>
+          </td>
+          <td><span class="badge badge-{{ lead.industry }}">{{ t['ind_' + lead.industry] if ('ind_' + lead.industry) in t else lead.industry }}</span></td>
+          <td><span class="badge badge-{{ lead.stage }}">{{ t['stage_' + lead.stage] if ('stage_' + lead.stage) in t else lead.stage }}</span></td>
+          <td>
+            {% if lead.score > 0 %}
+            <div class="flex items-center gap-2">
+              <div class="score-bar w-14 overflow-hidden">
+                <div style="height:4px;border-radius:2px;width:{{ lead.score }}%;background:{% if lead.score >= 80 %}#4ade80{% elif lead.score >= 60 %}#fb923c{% elif lead.score >= 40 %}#facc15{% else %}#f87171{% endif %}"></div>
+              </div>
+              <span class="text-xs font-semibold {% if lead.score >= 80 %}text-green-400{% elif lead.score >= 60 %}text-orange-400{% elif lead.score >= 40 %}text-yellow-400{% else %}text-red-400{% endif %}">{{ lead.score }}</span>
+            </div>
+            {% else %}
+            <span class="text-xs text-slate-600">—</span>
+            {% endif %}
+          </td>
+          <td class="text-slate-300 font-medium">${{ "{:,.0f}".format(lead.value) }}</td>
+          <td class="text-xs text-slate-500">
+            {% set delta = (now - lead.last_contact).days if now is defined else 0 %}
+            {{ lead.last_contact.strftime('%b %d') }}
+          </td>
+          <td>
+            <a href="/leads/{{ lead.id }}" class="text-indigo-400 hover:text-indigo-300 text-xs font-medium">{{ t.view }} →</a>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not leads %}
+        <tr><td colspan="8" class="text-center py-10 text-slate-500">No leads found</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

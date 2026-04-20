@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  crm:
+    build: .
+    ports:
+      - "${PORT:-8001}:8001"
+    env_file:
+      - .env
+    volumes:
+      - ./crm_data:/app/crm_data
+    restart: unless-stopped
