@@ -3,14 +3,14 @@
 {% block nav_pipeline %}active{% endblock %}
 
 {% block content %}
-<div class="p-6 space-y-5 h-full flex flex-col">
+<div class="p-6 flex flex-col" style="height:100%">
 
   <!-- Header -->
-  <div class="flex items-center justify-between flex-shrink-0">
+  <div class="flex items-center justify-between mb-5 flex-shrink-0">
     <div>
       <h1 class="text-xl font-bold text-white">Pipeline</h1>
-      <p class="text-sm text-slate-400 mt-0.5">
-        {{ total_leads }} leads · ${{ "{:,.0f}".format(total_value) }} total pipeline
+      <p class="text-sm text-slate-400 mt-0.5" id="pipeline-summary">
+        {{ total_leads }} leads · ${{ "{:,.0f}".format(total_value) }} active pipeline
       </p>
     </div>
     <a href="/leads" class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1.5">
@@ -19,16 +19,16 @@
     </a>
   </div>
 
-  <!-- Kanban Board -->
-  <div class="flex gap-4 overflow-x-auto pb-4 flex-1" style="min-height:0">
+  <!-- Board -->
+  <div class="flex gap-4 overflow-x-auto pb-2" style="flex:1;min-height:0">
 
     {% set stage_colors = {
-      'nuevo':      {'border':'rgba(96,165,250,.4)',  'bg':'rgba(59,130,246,.08)',  'badge':'rgba(59,130,246,.15)',  'text':'#60a5fa'},
-      'contactado': {'border':'rgba(250,204,21,.4)',  'bg':'rgba(234,179,8,.08)',   'badge':'rgba(234,179,8,.15)',   'text':'#facc15'},
-      'calificado': {'border':'rgba(251,146,60,.4)',  'bg':'rgba(249,115,22,.08)',  'badge':'rgba(249,115,22,.15)',  'text':'#fb923c'},
-      'propuesta':  {'border':'rgba(192,132,252,.4)', 'bg':'rgba(168,85,247,.08)',  'badge':'rgba(168,85,247,.15)',  'text':'#c084fc'},
-      'ganado':     {'border':'rgba(74,222,128,.4)',  'bg':'rgba(34,197,94,.08)',   'badge':'rgba(34,197,94,.15)',   'text':'#4ade80'},
-      'perdido':    {'border':'rgba(248,113,113,.4)', 'bg':'rgba(239,68,68,.08)',   'badge':'rgba(239,68,68,.15)',   'text':'#f87171'}
+      'nuevo':      {'border':'rgba(96,165,250,.35)',  'hover_border':'#60a5fa', 'bg':'rgba(59,130,246,.08)',  'badge_bg':'rgba(59,130,246,.15)',  'text':'#60a5fa',  'dot':'#60a5fa'},
+      'contactado': {'border':'rgba(250,204,21,.35)',  'hover_border':'#facc15', 'bg':'rgba(234,179,8,.08)',   'badge_bg':'rgba(234,179,8,.15)',   'text':'#facc15',  'dot':'#facc15'},
+      'calificado': {'border':'rgba(251,146,60,.35)',  'hover_border':'#fb923c', 'bg':'rgba(249,115,22,.08)',  'badge_bg':'rgba(249,115,22,.15)',  'text':'#fb923c',  'dot':'#fb923c'},
+      'propuesta':  {'border':'rgba(192,132,252,.35)', 'hover_border':'#c084fc', 'bg':'rgba(168,85,247,.08)',  'badge_bg':'rgba(168,85,247,.15)',  'text':'#c084fc',  'dot':'#c084fc'},
+      'ganado':     {'border':'rgba(74,222,128,.35)',  'hover_border':'#4ade80', 'bg':'rgba(34,197,94,.08)',   'badge_bg':'rgba(34,197,94,.15)',   'text':'#4ade80',  'dot':'#4ade80'},
+      'perdido':    {'border':'rgba(248,113,113,.35)', 'hover_border':'#f87171', 'bg':'rgba(239,68,68,.08)',   'badge_bg':'rgba(239,68,68,.15)',   'text':'#f87171',  'dot':'#f87171'}
     } %}
 
     {% for stage in ['nuevo','contactado','calificado','propuesta','ganado','perdido'] %}
@@ -36,46 +36,49 @@
     {% set col_leads = kanban[stage] %}
     {% set col_value = col_leads | sum(attribute='value') %}
 
-    <div class="flex-shrink-0 flex flex-col" style="width:240px">
+    <div class="kanban-col flex-shrink-0 flex flex-col" style="width:230px" data-stage="{{ stage }}">
 
       <!-- Column header -->
-      <div class="flex items-center justify-between mb-3 px-1">
+      <div class="flex items-center justify-between mb-3 px-0.5">
         <div class="flex items-center gap-2">
-          <span style="width:8px;height:8px;border-radius:50%;background:{{ col.text }};flex-shrink:0;display:inline-block"></span>
+          <span style="width:7px;height:7px;border-radius:50%;background:{{ col.dot }};flex-shrink:0;display:inline-block"></span>
           <span class="text-xs font-semibold text-slate-200">{{ t['stage_' + stage] }}</span>
-          <span style="background:{{ col.badge }};color:{{ col.text }};border-radius:999px;padding:1px 7px;font-size:10px;font-weight:700">{{ col_leads | length }}</span>
+          <span class="stage-count" data-stage="{{ stage }}" style="background:{{ col.badge_bg }};color:{{ col.text }};border-radius:999px;padding:1px 7px;font-size:10px;font-weight:700">{{ col_leads | length }}</span>
         </div>
-        {% if col_value > 0 %}
-        <span class="text-xs text-slate-500">${{ "{:,.0f}".format(col_value) }}</span>
-        {% endif %}
+        <span class="stage-value text-xs text-slate-500" data-stage="{{ stage }}">${{ "{:,.0f}".format(col_value) }}</span>
       </div>
 
-      <!-- Column body -->
-      <div class="flex flex-col gap-2.5 overflow-y-auto pr-0.5" style="flex:1;max-height:calc(100vh - 210px)">
+      <!-- Drop zone -->
+      <div class="drop-zone flex flex-col gap-2.5 rounded-xl p-2 transition-colors overflow-y-auto"
+           data-stage="{{ stage }}"
+           style="flex:1;max-height:calc(100vh - 200px);min-height:80px;border:2px dashed transparent">
 
         {% if not col_leads %}
-        <div style="border:1px dashed rgba(255,255,255,.07);border-radius:10px;padding:20px 12px;text-align:center;color:#475569;font-size:12px">
-          No leads
+        <div class="empty-placeholder text-center py-6 text-slate-600 text-xs select-none pointer-events-none">
+          Drop here
         </div>
         {% endif %}
 
         {% for lead in col_leads %}
-        <a href="/leads/{{ lead.id }}" style="display:block;background:#0f172a;border:1px solid {{ col.border }};border-radius:10px;padding:12px 13px;text-decoration:none;transition:border-color .15s,transform .1s" onmouseover="this.style.borderColor='{{ col.text }}';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='{{ col.border }}';this.style.transform='translateY(0)'">
+        <div class="lead-card cursor-grab active:cursor-grabbing"
+             draggable="true"
+             data-lead-id="{{ lead.id }}"
+             data-stage="{{ stage }}"
+             data-value="{{ lead.value }}"
+             style="background:#0f172a;border:1px solid {{ col.border }};border-radius:10px;padding:12px 13px;transition:box-shadow .15s,transform .1s,opacity .15s;user-select:none"
+             onclick="window.location='/leads/{{ lead.id }}'">
 
-          <!-- Lead name + company -->
-          <div class="mb-2">
+          <div class="mb-1.5">
             <div class="text-sm font-semibold text-slate-100 leading-snug">{{ lead.name }}</div>
             <div class="text-xs text-slate-500 mt-0.5 truncate">{{ lead.company }}</div>
           </div>
 
-          <!-- Industry badge -->
           <div class="mb-2.5">
             <span class="badge badge-{{ lead.industry }}" style="font-size:10px;padding:1px 7px">
               {{ t['ind_' + lead.industry] if ('ind_' + lead.industry) in t else lead.industry }}
             </span>
           </div>
 
-          <!-- Value + Score row -->
           <div class="flex items-center justify-between">
             <span class="text-sm font-bold" style="color:{{ col.text }}">${{ "{:,.0f}".format(lead.value) }}</span>
             {% if lead.score > 0 %}
@@ -87,13 +90,147 @@
             </div>
             {% endif %}
           </div>
-
-        </a>
+        </div>
         {% endfor %}
+
       </div>
     </div>
     {% endfor %}
 
   </div>
 </div>
+
+<!-- Toast notification -->
+<div id="toast" style="position:fixed;bottom:24px;right:24px;background:#1e293b;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 16px;font-size:13px;color:#e2e8f0;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100"></div>
+
+<style>
+.drop-zone.drag-over {
+  border-color: rgba(99,102,241,.5) !important;
+  background: rgba(99,102,241,.06) !important;
+}
+.lead-card.dragging {
+  opacity: 0.4;
+  transform: scale(0.97);
+}
+.lead-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  transform: translateY(-1px);
+}
+</style>
+
+<script>
+const STAGE_COLORS = {
+  nuevo:      { border:'rgba(96,165,250,.35)',  text:'#60a5fa',  badgeBg:'rgba(59,130,246,.15)' },
+  contactado: { border:'rgba(250,204,21,.35)',  text:'#facc15',  badgeBg:'rgba(234,179,8,.15)' },
+  calificado: { border:'rgba(251,146,60,.35)',  text:'#fb923c',  badgeBg:'rgba(249,115,22,.15)' },
+  propuesta:  { border:'rgba(192,132,252,.35)', text:'#c084fc',  badgeBg:'rgba(168,85,247,.15)' },
+  ganado:     { border:'rgba(74,222,128,.35)',  text:'#4ade80',  badgeBg:'rgba(34,197,94,.15)' },
+  perdido:    { border:'rgba(248,113,113,.35)', text:'#f87171',  badgeBg:'rgba(239,68,68,.15)' },
+};
+
+let draggedCard = null;
+let sourceZone = null;
+
+// ── Drag source events ──────────────────────────────────
+document.addEventListener('dragstart', e => {
+  const card = e.target.closest('.lead-card');
+  if (!card) return;
+  draggedCard = card;
+  sourceZone = card.closest('.drop-zone');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', card.dataset.leadId);
+  setTimeout(() => card.classList.add('dragging'), 0);
+});
+
+document.addEventListener('dragend', e => {
+  if (draggedCard) draggedCard.classList.remove('dragging');
+  document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over'));
+  draggedCard = null;
+  sourceZone = null;
+});
+
+// ── Drop zone events ────────────────────────────────────
+document.querySelectorAll('.drop-zone').forEach(zone => {
+  zone.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  });
+
+  zone.addEventListener('dragenter', e => {
+    e.preventDefault();
+    zone.classList.add('drag-over');
+  });
+
+  zone.addEventListener('dragleave', e => {
+    if (!zone.contains(e.relatedTarget)) zone.classList.remove('drag-over');
+  });
+
+  zone.addEventListener('drop', async e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+
+    if (!draggedCard) return;
+    const newStage = zone.dataset.stage;
+    const oldStage = draggedCard.dataset.stage;
+    if (newStage === oldStage) return;
+
+    const leadId = draggedCard.dataset.leadId;
+    const leadValue = parseFloat(draggedCard.dataset.value) || 0;
+
+    // Optimistic UI: move card into new zone
+    const placeholder = zone.querySelector('.empty-placeholder');
+    if (placeholder) placeholder.remove();
+    zone.appendChild(draggedCard);
+
+    // Update card colors to match new stage
+    const c = STAGE_COLORS[newStage];
+    draggedCard.style.borderColor = c.border;
+    draggedCard.dataset.stage = newStage;
+    const valueEl = draggedCard.querySelector('.text-sm.font-bold');
+    if (valueEl) valueEl.style.color = c.text;
+
+    // If old zone now empty, add placeholder
+    const oldZone = sourceZone;
+    if (oldZone && oldZone.querySelectorAll('.lead-card').length === 0) {
+      oldZone.innerHTML = '<div class="empty-placeholder text-center py-6 text-slate-600 text-xs select-none pointer-events-none">Drop here</div>';
+    }
+
+    // Update counters
+    updateColumnStats(oldStage, -1, -leadValue);
+    updateColumnStats(newStage, +1, +leadValue);
+
+    // Persist to server
+    try {
+      const res = await fetch(`/leads/${leadId}/stage`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stage: newStage }),
+      });
+      if (!res.ok) throw new Error('Server error');
+      showToast(`Moved to ${newStage}`);
+    } catch {
+      showToast('Error saving — please refresh', true);
+    }
+  });
+});
+
+function updateColumnStats(stage, countDelta, valueDelta) {
+  const countEl = document.querySelector(`.stage-count[data-stage="${stage}"]`);
+  const valueEl = document.querySelector(`.stage-value[data-stage="${stage}"]`);
+  if (countEl) countEl.textContent = Math.max(0, parseInt(countEl.textContent) + countDelta);
+  if (valueEl) {
+    const cur = parseFloat(valueEl.textContent.replace(/[$,]/g, '')) || 0;
+    const next = Math.max(0, cur + valueDelta);
+    valueEl.textContent = '$' + next.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+}
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderColor = isError ? 'rgba(239,68,68,.4)' : 'rgba(99,102,241,.4)';
+  t.style.opacity = '1';
+  setTimeout(() => t.style.opacity = '0', 2200);
+}
+</script>
 {% endblock %}

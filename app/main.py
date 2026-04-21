@@ -150,6 +150,24 @@ async def lead_detail(request: Request, lead_id: int, db: AsyncSession = Depends
     })
 
 
+@app.patch("/leads/{lead_id}/stage")
+async def update_lead_stage(request: Request, lead_id: int, db: AsyncSession = Depends(get_db)):
+    if not auth_check(request):
+        raise HTTPException(status_code=401)
+    data = await request.json()
+    new_stage = data.get("stage")
+    valid = ["nuevo", "contactado", "calificado", "propuesta", "ganado", "perdido"]
+    if new_stage not in valid:
+        raise HTTPException(status_code=400, detail="Invalid stage")
+    lead = await get_lead(db, lead_id)
+    if not lead:
+        raise HTTPException(status_code=404)
+    old_stage = lead.stage
+    await update_lead(db, lead, {"stage": new_stage})
+    await add_activity(db, lead_id, "note", f"Stage changed: {old_stage} → {new_stage}")
+    return JSONResponse({"ok": True, "stage": new_stage})
+
+
 @app.post("/leads/{lead_id}")
 async def update_lead_route(request: Request, lead_id: int, db: AsyncSession = Depends(get_db),
     name: str = Form(None), company: str = Form(None), email_field: str = Form(None, alias="email"),
