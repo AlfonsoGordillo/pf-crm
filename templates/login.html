@@ -9,6 +9,7 @@
     body{background:#070711;font-family:'Inter',system-ui,sans-serif}
     input{background:#0a0f1e;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#e2e8f0;font-size:14px;padding:10px 14px;width:100%;outline:none;transition:border-color .15s}
     input:focus{border-color:#6366f1}
+    input:-webkit-autofill,input:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 30px #0a0f1e inset!important;-webkit-text-fill-color:#e2e8f0!important;caret-color:#e2e8f0}
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center" style="background:radial-gradient(ellipse at 50% 0%, rgba(99,102,241,.12) 0%, #070711 60%)">
@@ -44,7 +45,7 @@
       </div>
       <div>
         <label class="block text-xs font-medium text-slate-400 mb-1.5">{{ t.password }}</label>
-        <input type="password" name="password" value="demo123" required autocomplete="current-password"/>
+        <input type="password" name="password" value="demo123" required autocomplete="off"/>
       </div>
       <button type="submit" class="w-full py-2.5 rounded-lg font-semibold text-sm text-white transition-opacity hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
         {{ t.sign_in }}
