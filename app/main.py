@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Depends, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
@@ -15,7 +16,8 @@ from app.seed import seed_database
 from app.i18n import get_t
 
 load_dotenv()
-templates = Jinja2Templates(directory="templates")
+BASE_DIR = Path(__file__).resolve().parent.parent
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
 def get_lang(request: Request) -> str:
