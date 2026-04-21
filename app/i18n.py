@@ -72,6 +72,7 @@ TRANSLATIONS = {
         "days_ago": "days ago",
         "today": "Today",
         "yesterday": "Yesterday",
+        "list_view": "List View",
     },
     "es": {
         "app_name": "CRM AI",
@@ -146,6 +147,7 @@ TRANSLATIONS = {
         "days_ago": "días atrás",
         "today": "Hoy",
         "yesterday": "Ayer",
+        "list_view": "Vista Lista",
     },
 }
 

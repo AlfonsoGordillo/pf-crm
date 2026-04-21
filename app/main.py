@@ -102,6 +102,24 @@ async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
     })
 
 
+@app.get("/pipeline", response_class=HTMLResponse)
+async def pipeline_page(request: Request, db: AsyncSession = Depends(get_db)):
+    email = auth_check(request)
+    if not email:
+        return RedirectResponse(url="/login", status_code=302)
+    lang = get_lang(request)
+    all_leads = await get_leads(db)
+    stages = ["nuevo", "contactado", "calificado", "propuesta", "ganado", "perdido"]
+    kanban = {s: [l for l in all_leads if l.stage == s] for s in stages}
+    active_leads = [l for l in all_leads if l.stage not in ("ganado", "perdido")]
+    return templates.TemplateResponse(request, "pipeline.html", {
+        "t": get_t(lang), "lang": lang, "email": email,
+        "kanban": kanban,
+        "total_leads": len(active_leads),
+        "total_value": sum(l.value for l in active_leads),
+    })
+
+
 @app.get("/leads", response_class=HTMLResponse)
 async def leads_page(request: Request, stage: str = None, industry: str = None, search: str = None, db: AsyncSession = Depends(get_db)):
     email = auth_check(request)
