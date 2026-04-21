@@ -54,7 +54,7 @@ async def login_page(request: Request):
     if auth_check(request):
         return RedirectResponse(url="/dashboard", status_code=302)
     lang = get_lang(request)
-    return templates.TemplateResponse("login.html", {"request": request, "t": get_t(lang), "lang": lang})
+    return templates.TemplateResponse(request, "login.html", {"t": get_t(lang), "lang": lang})
 
 
 @app.post("/login")
@@ -62,8 +62,8 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
     user = await get_user_by_email(db, email)
     if not user or not verify_password(password, user.password_hash):
         lang = get_lang(request)
-        return templates.TemplateResponse("login.html", {
-            "request": request, "t": get_t(lang), "lang": lang,
+        return templates.TemplateResponse(request, "login.html", {
+            "t": get_t(lang), "lang": lang,
             "error": "Invalid credentials" if lang == "en" else "Credenciales incorrectas"
         })
     token = create_token(email)
@@ -96,8 +96,8 @@ async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
     stats = await get_dashboard_stats(db)
     recent = await get_leads(db)
     recent = recent[:8]
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request, "t": get_t(lang), "lang": lang,
+    return templates.TemplateResponse(request, "dashboard.html", {
+        "t": get_t(lang), "lang": lang,
         "stats": stats, "recent_leads": recent, "email": email,
     })
 
@@ -109,8 +109,8 @@ async def leads_page(request: Request, stage: str = None, industry: str = None, 
         return RedirectResponse(url="/login", status_code=302)
     lang = get_lang(request)
     leads = await get_leads(db, stage=stage, industry=industry, search=search)
-    return templates.TemplateResponse("leads.html", {
-        "request": request, "t": get_t(lang), "lang": lang,
+    return templates.TemplateResponse(request, "leads.html", {
+        "t": get_t(lang), "lang": lang,
         "leads": leads, "email": email,
         "filter_stage": stage or "", "filter_industry": industry or "", "search": search or "",
     })
@@ -126,8 +126,8 @@ async def lead_detail(request: Request, lead_id: int, db: AsyncSession = Depends
     if not lead:
         raise HTTPException(status_code=404)
     activities = await get_activities(db, lead_id)
-    return templates.TemplateResponse("lead_detail.html", {
-        "request": request, "t": get_t(lang), "lang": lang,
+    return templates.TemplateResponse(request, "lead_detail.html", {
+        "t": get_t(lang), "lang": lang,
         "lead": lead, "activities": activities, "email": email,
     })
 
