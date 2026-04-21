@@ -2,7 +2,8 @@ import os
 from anthropic import AsyncAnthropic
 from app.models import Lead
 
-client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+def get_client() -> AsyncAnthropic:
+    return AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 PF_CONTEXT = """Projects Factory is a global AI Products & Services company.
 Products: SaaS AI Agents, Agents as a Service (AaaS), AI-Finance.
@@ -33,7 +34,7 @@ Lead information:
 
 Be concise, specific, and actionable. Maximum 200 words."""
 
-    response = await client.messages.create(
+    response = await get_client().messages.create(
         model="claude-sonnet-4-6",
         max_tokens=512,
         messages=[{"role": "user", "content": prompt}]
@@ -66,7 +67,7 @@ Lead information:
 
 Be specific and actionable. Maximum 200 words."""
 
-    response = await client.messages.create(
+    response = await get_client().messages.create(
         model="claude-sonnet-4-6",
         max_tokens=512,
         messages=[{"role": "user", "content": prompt}]
@@ -102,7 +103,7 @@ Subject: [subject line]
 
 [email body]"""
 
-    response = await client.messages.create(
+    response = await get_client().messages.create(
         model="claude-sonnet-4-6",
         max_tokens=512,
         messages=[{"role": "user", "content": prompt}]
