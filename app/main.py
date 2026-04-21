@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 from dotenv import load_dotenv
 
-from app.database import get_db, init_db
+from app.database import get_db, init_db, async_session
 from app.models import Lead
 from app.auth import verify_password, create_token, decode_token, hash_password
 from app.crud import get_leads, get_lead, update_lead, add_activity, get_activities, get_dashboard_stats, get_user_by_email
@@ -32,7 +32,7 @@ def auth_check(request: Request):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
-    async with __import__("app.database", fromlist=["async_session"]).async_session() as db:
+    async with async_session() as db:
         await seed_database(db)
     yield
 
